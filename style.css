@@ -1,3 +1,20 @@
+html,
+body {
+	display: flex;
+	height: 100%;
+	width: 100%;
+}
+
+.grid {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	background-color: lightblue;
+	width: 100px;
+	height: 100px;
+	z-index: 0;
+}
+
 .box {
 	position: fixed;
 	top: 0px;

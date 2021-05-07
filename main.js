@@ -1,154 +1,119 @@
-//defined linkedlist and node classes
+//GLOBALS
+SNAKE_DIMENSION = 100;
 
-class LLNode {
-	constructor(val) {
-		this.val = val;
-		this.next = null;
-		this.prev = null;
+//great a grid on the page
+const gameContainer = document.getElementsByTagName("body")[0];
+const style = getComputedStyle(gameContainer);
+const height = style.height;
+const width = style.width;
+
+const m = Math.floor(parseInt(height.slice(0, height.length - 2)) / 100);
+const n = Math.floor(parseInt(width.slice(0, width.length - 2)) / 100);
+
+//create all valid divs
+for (i = 0; i < n; ++i) {
+	for (j = 0; j < m; ++j) {
+		const gridElement = document.createElement("div");
+		gridElement.className = "grid";
+		gridElement.style.top = SNAKE_DIMENSION * j + "px";
+		gridElement.style.left = SNAKE_DIMENSION * i + "px";
+		gridElement.id = "grid" + i + j;
+		gameContainer.appendChild(gridElement);
 	}
 }
 
-class LinkedList {
-	constructor(head) {
-		this.head = head;
-		this.last = head;
-		this.size = 1;
-	}
-
-	add(llnode) {
-		let currNode = this.head;
-		let nextNode = this.head.next;
-		while (nextNode !== null) {
-			currNode = nextNode;
-			nextNode = nextNode.next;
-		}
-		currNode.next = llnode;
-		llnode.prev = currNode;
-		this.last = llnode;
-		++this.size;
-	}
-
-	killLast() {
-		let currNode = this.head;
-		let nextNode = this.head.next;
-		while (nextNode !== null) {
-			currNode = nextNode;
-			nextNode = nextNode.next;
-		}
-		currNode.next = null;
-		this.last = currNode;
-		--this.size;
-	}
-	getLast() {
-		return this.last;
-	}
-
-	getHead() {
-		return this.head;
-	}
-}
-
-//create linkedlist representation of snake
-const gameContainer = document.getElementById("gameContainer");
-const targetElement = document.getElementById("box");
-const targetElementStyle = getComputedStyle(targetElement);
-
-const initialElement = new LLNode(targetElement);
-const snake = new LinkedList(initialElement);
-const q = [];
-
-//set consumable square
-const apple = document.createElement("div");
-apple.className = "apple";
-gameContainer.appendChild(apple);
-
-//game state stuff
-let tick = snake.size;
-
-//helper function for consumable positioning
+//helper functions for consumable state
 function getRandomInt(max) {
-	return Math.floor(Math.random() * max) * 100;
+	return Math.floor(Math.random() * max);
 }
+
+//initialise consumable
+let apple = document.getElementById("grid" + getRandomInt(n) + getRandomInt(m));
+let appleStyle = getComputedStyle(apple);
+apple.className = "apple";
 
 //set consumable within random point of the page
-function updateConsumable(element) {
-	element.style.top = getRandomInt(7).toString() + "px";
-	element.style.left = getRandomInt(14).toString() + "px";
+function updateConsumable() {
+	apple.className = "grid";
+	apple = document.getElementById("grid" + getRandomInt(n) + getRandomInt(m));
+	appleStyle = getComputedStyle(apple);
+	apple.className = "apple";
 }
 
-//update position of snake and all its elements
-function moveSnake(event) {
-	let currElement = snake.getLast();
-	let toHead = currElement.prev;
-	while (toHead !== null) {
-		//update tail-most element position to prev
-		const currElementStyle = getComputedStyle(currElement.val);
-		const toHeadElementStyle = getComputedStyle(toHead.val);
+//render coloured divs
+function renderElement(pos) {
+	const [x, y] = pos;
 
-		//toHead pos to push into curr
-		const yPos = toHeadElementStyle.getPropertyValue("top");
-		const xPos = toHeadElementStyle.getPropertyValue("left");
+	const gridElement = document.getElementById("grid" + x + y);
+	gridElement.className = "box";
+}
 
-		currElement.val.style.top = yPos;
-		currElement.val.style.left = xPos;
+function derenderElement(pos) {
+	const [x, y] = pos;
+	const gridElement = document.getElementById("grid" + x + y);
+	gridElement.className = "grid";
+	console.log(y, appleStyle.top, x, appleStyle.left);
 
-		currElement = toHead;
-		toHead = toHead.next;
+	//check if consumable has been passedover
+	if (y * 100 + "px" == appleStyle.top && x * 100 + "px" == appleStyle.left) {
+		snake.push([x, y]);
+		updateConsumable();
 	}
+}
 
-	//update the head element pos
-	const snakeHead = snake.getHead().val;
-	const elementStyle = getComputedStyle(snakeHead);
+//represent snake as list of grid positions
+let snake = [[0, 0]];
+let direction = "d";
+//render initial element
+renderElement(snake[0]);
+
+//move snake by unshifting with new position, and shifting off the last element
+function moveSnake(event, snake) {
+	const [x, y] = snake[0];
 	const keyStroke = event.key.toLowerCase();
-	const yPos = elementStyle.getPropertyValue("top");
-	const xPos = elementStyle.getPropertyValue("left");
-	const yPixelOrigin = parseInt(yPos.substring(0, yPos.length - 2));
-	const xPixelOrigin = parseInt(xPos.substring(0, xPos.length - 2));
+
+	const leastRecentMove = snake.pop();
+	console.log("MOVED FROM!!!", leastRecentMove);
 
 	switch (keyStroke) {
 		case "w":
-			snakeHead.style.top =
-				(Math.abs(yPixelOrigin - 100 + 700) % 700).toString() + "px";
+			snake.unshift([x, Math.abs(y - 1 + m) % m]);
+			direction = "w";
+			// snakeHead.style.top =
+			// 	(Math.abs(yPixelOrigin - 100 + 700) % 700).toString() + "px";
 			break;
 		case "a":
-			snakeHead.style.left =
-				(Math.abs(xPixelOrigin - 100 + 1400) % 1400).toString() + "px";
+			snake.unshift([Math.abs(x - 1 + n) % n, y]);
+			direction = "a";
+			// snakeHead.style.left =
+			// 	(Math.abs(xPixelOrigin - 100 + 1400) % 1400).toString() + "px";
 			break;
 		case "s":
-			snakeHead.style.top = ((yPixelOrigin + 100) % 700).toString() + "px";
+			snake.unshift([x, (y + 1) % m]);
+			direction = "s";
+			// snakeHead.style.top = ((yPixelOrigin + 100) % 700).toString() + "px";
 			break;
 		case "d":
-			snakeHead.style.left = ((xPixelOrigin + 100) % 1400).toString() + "px";
+			snake.unshift([(x + 1) % n, y]);
+			direction = "d";
+			// snakeHead.style.left = ((xPixelOrigin + 100) % 1400).toString() + "px";
 			break;
 		default:
+			snake.push(leastRecentMove);
+			leastRecentMove = undefined;
 			console.log("invalid key!", keyStroke);
 	}
 
-	const appleStyle = getComputedStyle(apple);
-	if (
-		appleStyle.getPropertyValue("top") === yPos &&
-		appleStyle.getPropertyValue("left") === xPos
-	) {
-		//create new box and add it to the snack array
-		const newBox = document.createElement("div");
-		newBox.className = "box";
-		newBox.style.top = xPos;
-		newBox.style.left = yPos;
-		q.push(newBox);
+	leastRecentMove && derenderElement(leastRecentMove);
+	snake.forEach(renderElement);
 
-		updateConsumable(apple);
-		tick = snake.size - 1;
-	}
-
-	if (q.length > 0 && tick === 0) {
-		const newBox = q.pop();
-		snake.add(new LLNode(newBox));
-		gameContainer.appendChild(newBox);
-	}
+	console.log("snake ....", snake);
 }
 
 window.addEventListener("keydown", (e) => {
-	--tick;
-	console.log("tick", tick);
-	moveSnake(e);
+	moveSnake(e, snake);
 });
+
+setInterval(() => {
+	moveSnake({ key: direction }, snake);
+}, 1000);
