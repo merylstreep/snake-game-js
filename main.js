@@ -12,6 +12,7 @@ class LinkedList {
 	constructor(head) {
 		this.head = head;
 		this.last = head;
+		this.size = 1;
 	}
 
 	add(llnode) {
@@ -24,6 +25,7 @@ class LinkedList {
 		currNode.next = llnode;
 		llnode.prev = currNode;
 		this.last = llnode;
+		++this.size;
 	}
 
 	killLast() {
@@ -35,6 +37,7 @@ class LinkedList {
 		}
 		currNode.next = null;
 		this.last = currNode;
+		--this.size;
 	}
 	getLast() {
 		return this.last;
@@ -46,7 +49,6 @@ class LinkedList {
 }
 
 //create linkedlist representation of snake
-
 const gameContainer = document.getElementById("gameContainer");
 const targetElement = document.getElementById("box");
 const targetElementStyle = getComputedStyle(targetElement);
@@ -60,15 +62,21 @@ const apple = document.createElement("div");
 apple.className = "apple";
 gameContainer.appendChild(apple);
 
+//game state stuff
+let tick = snake.size;
+
+//helper function for consumable positioning
 function getRandomInt(max) {
 	return Math.floor(Math.random() * max) * 100;
 }
 
+//set consumable within random point of the page
 function updateConsumable(element) {
 	element.style.top = getRandomInt(7).toString() + "px";
 	element.style.left = getRandomInt(14).toString() + "px";
 }
 
+//update position of snake and all its elements
 function moveSnake(event) {
 	let currElement = snake.getLast();
 	let toHead = currElement.prev;
@@ -129,9 +137,10 @@ function moveSnake(event) {
 		q.push(newBox);
 
 		updateConsumable(apple);
+		tick = snake.size - 1;
 	}
 
-	while (q.length > 0) {
+	if (q.length > 0 && tick === 0) {
 		const newBox = q.pop();
 		snake.add(new LLNode(newBox));
 		gameContainer.appendChild(newBox);
@@ -139,5 +148,7 @@ function moveSnake(event) {
 }
 
 window.addEventListener("keydown", (e) => {
+	--tick;
+	console.log("tick", tick);
 	moveSnake(e);
 });
