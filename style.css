@@ -1,0 +1,19 @@
+.box {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	background-color: red;
+	width: 100px;
+	height: 100px;
+	z-index: 1;
+}
+
+.apple {
+	position: fixed;
+	top: 400px;
+	left: 400px;
+	background-color: lightgreen;
+	width: 100px;
+	height: 100px;
+	z-index: 0;
+}
