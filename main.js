@@ -60,6 +60,15 @@ const apple = document.createElement("div");
 apple.className = "apple";
 gameContainer.appendChild(apple);
 
+function getRandomInt(max) {
+	return Math.floor(Math.random() * max) * 100;
+}
+
+function updateConsumable(element) {
+	element.style.top = getRandomInt(7).toString() + "px";
+	element.style.left = getRandomInt(14).toString() + "px";
+}
+
 function moveSnake(event) {
 	let currElement = snake.getLast();
 	let toHead = currElement.prev;
@@ -118,6 +127,8 @@ function moveSnake(event) {
 		newBox.style.top = xPos;
 		newBox.style.left = yPos;
 		q.push(newBox);
+
+		updateConsumable(apple);
 	}
 
 	while (q.length > 0) {
